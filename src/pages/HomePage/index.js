@@ -6,6 +6,7 @@ import {
     StyleSheet
 } from 'react-native';
 import { Camera } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
 
 export default function HomePage({ navigation }) {
     const [hasPermision, setHasPermision] = useState(null);
@@ -16,6 +17,12 @@ export default function HomePage({ navigation }) {
             
             setHasPermision(status === 'granted');
         })();
+
+        (async () => {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            
+            setHasPermision(status === 'granted');
+        })();
     }, []);
 
     if(hasPermision == null) {
@@ -23,7 +30,24 @@ export default function HomePage({ navigation }) {
     }
 
     if(!hasPermision) {
-        return <Text>Access denied!</Text>;
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity
+                    onPress={givePermission}
+                    style={[styles.button, { width: '60%' }]}
+                >
+                    <Text style={styles.txtButton}>Press to give permission</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    async function givePermission() {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        if(status === 'granted') {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            setHasPermision(status === 'granted');
+        }
     }
 
     function accessCamera() {

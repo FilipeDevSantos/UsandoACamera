@@ -8,12 +8,22 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera } from "expo-camera";
+import * as MediaLibrary from 'expo-media-library';
 
 export default function CameraPage({ navigation }) {
     const camRef = useRef(null);
     const [type, setType] = useState(Camera.Constants.Type.back);
     const [capturedPhoto, setCapturedPhoto] = useState('');
     const [open, setOpen] = useState(false);
+    const [photoSaved, setPhotoSaved] = useState(false);
+
+    function toggleCameraType() {
+        setType(
+            type === Camera.Constants.Type.back
+                ? Camera.Constants.Type.front
+                : Camera.Constants.Type.back
+        );
+    }
 
     async function takePicture() {
         if(camRef) {
@@ -23,6 +33,17 @@ export default function CameraPage({ navigation }) {
         }
     }
 
+    async function savePhoto() {
+        const asset = await MediaLibrary.createAssetAsync(capturedPhoto)
+            .then(() => {
+                alert('Photo saved successfully!');
+                setPhotoSaved(true);
+            })
+            .catch(err => {
+                console.log('error: '+err);
+            });
+    }
+
     return (
         <View style={styles.container}>
             <Camera
@@ -30,15 +51,12 @@ export default function CameraPage({ navigation }) {
                 type={type}
                 style={{ flex: 1 }}
             >
-                <View
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
                     style={styles.backButton}
                 >
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Ionicons name="arrow-back-outline" size={30} />
-                    </TouchableOpacity>
-                </View>
+                    <Ionicons name="arrow-back-outline" size={30} />
+                </TouchableOpacity>
                 <View style={styles.areaButtons}>
                     <TouchableOpacity
                         onPress={takePicture}
@@ -47,16 +65,10 @@ export default function CameraPage({ navigation }) {
                         <Ionicons name="camera-outline" size={30} color='#fff' />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => {
-                            setType(
-                                type === Camera.Constants.Type.back
-                                    ? Camera.Constants.Type.front
-                                    : Camera.Constants.Type.back
-                            );
-                        }}
+                        onPress={toggleCameraType}
                         style={styles.repeat}
                     >
-                        <Ionicons name="repeat-outline" size={30} color='#fff' />
+                        <Ionicons name="repeat-outline" size={24} color='#fff' />
                     </TouchableOpacity>
                 </View>
             </Camera>
@@ -71,12 +83,23 @@ export default function CameraPage({ navigation }) {
                             style={{ width: '100%', height: '90%', borderRadius: 20 }}
                             source={{ uri: capturedPhoto }}
                         />
-                        <TouchableOpacity
-                            onPress={() => setOpen(false)}
-                            style={styles.close}
-                        >
-                            <Ionicons name="close-outline" size={30} color='#fff' />
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                            <TouchableOpacity
+                                onPress={savePhoto}
+                                disabled={photoSaved}
+                                style={[styles.buttonPhoto, {
+                                    backgroundColor: photoSaved ? '#dfd' : '#dfdfdf',
+                                }]}
+                            >
+                                <Ionicons name="download-outline" size={30} color={photoSaved ? '#fff' : '#000'} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setOpen(false)}
+                                style={[styles.buttonPhoto, { backgroundColor: '#ff0000' }]}
+                            >
+                                <Ionicons name="close-outline" size={30} color='#fff' />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </Modal>
             }
@@ -112,7 +135,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 7,
-        width: '50%',
+        width: '60%',
         backgroundColor: '#000',
         marginRight: 40
     },
@@ -121,10 +144,12 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         backgroundColor: '#000'
     },
-    close: {
+    buttonPhoto: {
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 10,
         borderRadius: 50,
-        backgroundColor: '#000',
-        marginTop: 20
+        marginTop: 20,
+        marginHorizontal: 10
     }
 });
