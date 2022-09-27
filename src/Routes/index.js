@@ -17,12 +17,21 @@ export default function Routes() {
                     name='Home'
                     component={HomePage}
                     options={{
-                        title: 'Welcome to your camera app'
+                        title: 'Welcome to your camera app',
+                        headerTitleStyle: {
+                            color: '#fff'
+                        },
+                        headerStyle: {
+                            backgroundColor: '#26a69a'
+                        }
                     }}
                 />
                 <Stack.Screen
                     name='Camera'
                     component={CameraPage}
+                    options={{
+                        headerShown: false,
+                    }}
                 />
             </Stack.Navigator>
         </NavigationContainer>
